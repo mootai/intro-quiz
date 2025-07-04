@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "イントロクイズ早押し",
+  "version": "1.0",
+  "description": "イントロクイズでキーボードの早押しを判定し、YouTubeの動画再生・停止も可能です。",
+  "permissions": ["activeTab"],
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "run_at": "document_idle",
+      "js": ["content.js"]
+    },
+    {
+      "matches": ["*://www.youtube.com/*", "*://m.youtube.com/*"],
+      "run_at": "document_idle",
+      "js": ["youtube_controls.js"]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "_toggle_early_press": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+E",
+        "mac": "Command+Shift+E"
+      },
+      "description": "早押し機能の有効/無効を切り替えます。"
+    }
+  }
+}
