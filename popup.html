@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layouts/layout::head(title='MyPage',stylesheets=~{::#stylesheets})">
+<meta charset="UTF-8">
+<title>ログイン</title>
+<th:block id="stylesheets">
+    <link rel="stylesheet" th:href="@{/css/account/login.css}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Iframeがモーダルの高さにフィットするように調整 */
+        .modal-dialog-fullheight {
+            height: calc(100% - 1rem); /* 画面の高さから少し引く */
+            margin: 0.5rem auto;
+            display: flex;
+            align-items: center; /* 中央寄せ */
+        }
+        .modal-content-fullheight {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-body-fullheight {
+            flex-grow: 1; /* modal-body が残りのスペースを占めるように */
+            overflow-y: auto; /* 必要ならスクロールバーを表示 */
+            padding: 0; /* Iframeのためにパディングをなくす */
+        }
+        .modal-body-fullheight iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+    </style>
+</th:block>
+</head>
+<body th:replace="layouts/layout_no-account::body(contents=~{::#contents},scripts=~{::#scripts})">
+    <th:block id="contents">
+        <div>
+            <div class="card mt-5">
+                <div class="card-body">
+                    <form th:action="@{/mypage/app/parent/login}" method="post" class="allow-enter-submit recaptcha-form" th:object="${loginForm}" th:with="labelSize='col-sm-3',formSize='col-sm-9'">
+                        <div class="form-group password">
+                            <label class="c-input-label">パスワード</label>
+                            <input type="password" class="form-control ime-mode-disabled c-input" placeholder="パスワード"  th:field="*{password}" th:errorclass="'error-field is-invalid'">
+                            <span class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">error</span>
+                        </div>
+                        <div class="text-center mt-4">
+                            <button type="submit" name="create" class="btn btn-danger g-recaptcha login-btn mb-2 c-button-primary small"
+                                th:data-sitekey="${siteKey}" data-callback="onSubmit" data-action="submit">ログイン</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="alert alert-light c-notion mt-5" role="alert">
+                <p class="mb-2">このサイトはGoogleが提供する「reCAPTCHA」によって守られていますyoyoyo。</p>
+                <p class="mb-0">
+                    This site is protected by reCAPTCHA and the Google 
+                    <a href="#" class="c-ex-link text-decoration-underline"
+                       data-bs-toggle="modal" data-bs-target="#externalContentModal" data-url="https://policies.google.com/privacy">
+                        <img th:src="@{/images/icons/external-link.svg}">
+                        Privacy Policy
+                    </a> 
+                    and 
+                    <a href="#" class="c-ex-link text-decoration-underline"
+                       data-bs-toggle="modal" data-bs-target="#externalContentModal" data-url="https://policies.google.com/terms">
+                        <img th:src="@{/images/icons/external-link.svg}">
+                        Terms of Service
+                    </a> 
+                    apply.
+                </p>
+            </div>
+        </div>
+        
+        <div class="modal fade" id="externalContentModal" tabindex="-1" aria-labelledby="externalContentModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-fullheight">
+                <div class="modal-content modal-content-fullheight">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="externalContentModalLabel"></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body modal-body-fullheight">
+                        <iframe id="externalIframe" src="" frameborder="0"></iframe>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </th:block>
+    <th:block id="scripts">
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script type="text/javascript" th:src="@{/js/recaptcha.js}"></script>
+        <script src="https://www.google.com/recaptcha/api.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // jQueryのDOMContentLoadedに相当する記述
+            $(function() {
+                const $externalContentModal = $('#externalContentModal');
+                const $externalIframe = $('#externalIframe');
+                const $modalTitle = $('#externalContentModalLabel');
+
+                // モーダルが表示される直前のイベントをリッスン
+                $externalContentModal.on('show.bs.modal', function (event) {
+                    // クリックされたリンク要素を取得 (jQueryオブジェクトとして)
+                    const $relatedTarget = $(event.relatedTarget); 
+                    // data-url属性から表示したいURLを取得
+                    const urlToLoad = $relatedTarget.data('url');
+                    // リンクのテキストコンテンツからタイトルを取得
+                    const linkText = $relatedTarget.text().trim(); 
+
+                    if (urlToLoad) {
+                        $externalIframe.attr('src', urlToLoad); // Iframeのsrcを設定
+                        $modalTitle.text(linkText); // モーダルのタイトルをリンクのテキストにする
+                    } else {
+                        $modalTitle.text('エラー');
+                        $externalIframe.attr('src', 'about:blank'); // URLがない場合は空白に
+                    }
+                });
+
+                // モーダルが閉じられたときにIframeのsrcをクリアして、リソースを解放する
+                $externalContentModal.on('hidden.bs.modal', function (event) {
+                    $externalIframe.attr('src', ''); // Iframeのsrcをクリア
+                    $modalTitle.text(''); // タイトルもクリア
+                });
+            });
+        </script>
+    </th:block>
+</body>
+</html>
