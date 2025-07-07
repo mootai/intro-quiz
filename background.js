@@ -1,4 +1,4 @@
-let isEarlyPressActive = true; // 初期状態を有効に
+let isEarlyPressActive = true; 
 
 chrome.commands.onCommand.addListener(function(command) {
     if (command === "_toggle_early_press") {
